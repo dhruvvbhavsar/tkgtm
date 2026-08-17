@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4eadb">
+  <meta name="description" content="Browse, stream and listen offline to lectures of H.H. Tamal Krishna Goswami.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TKGTM">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/icon-maskable-192.png">
+  <title>TKGTM Lectures</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#library">Skip to library</a>
+  <header class="topbar">
+    <div class="masthead">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">T</span>
+        <span class="brand-name">TKGTM</span>
+        <span class="brand-sub">Audio archive</span>
+      </div>
+      <button id="install-btn" class="install" hidden>Install</button>
+    </div>
+
+    <div class="intro">
+      <div class="intro-copy-block">
+        <p class="eyebrow"><span>Since 1974</span> The spoken archive</p>
+        <h1>Listen<br><em>closely.</em></h1>
+        <p class="intro-copy">Recorded lectures and conversations with H.H. Tamal Krishna Goswami—preserved for careful listening.</p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <span class="hero-edition">Archive<br>No. 01</span>
+        <div class="hero-disc"><i></i></div>
+        <span class="hero-caption">Wisdom in<br>the spoken word</span>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <span class="search-icon" aria-hidden="true"></span>
+      <input type="search" id="q" class="search" placeholder="Search the archive" autocomplete="off">
+      <kbd>⌘ K</kbd>
+    </div>
+
+    <div class="controls">
+      <select id="series" class="select"><option value="">All series</option></select>
+      <select id="sort" class="select">
+        <option value="year">Newest first</option>
+        <option value="title">Title A–Z</option>
+        <option value="length">Shortest first</option>
+      </select>
+      <button id="offline-filter" class="saved-toggle" aria-pressed="false">Saved</button>
+    </div>
+
+    <nav class="years" id="years"></nav>
+  </header>
+
+  <main id="library">
+    <div class="library-heading">
+      <h2>All episodes</h2>
+      <p class="count" id="count"></p>
+    </div>
+    <ul class="list" id="list"></ul>
+    <div class="empty" id="empty" hidden>
+      <p class="empty-title" id="empty-text">No lectures match your search.</p>
+    </div>
+  </main>
+
+  <div class="player" id="player" hidden>
+    <div class="player-main">
+      <div class="cover" aria-hidden="true"><span>TKG</span><i></i></div>
+      <div class="np">
+        <div class="np-label" id="np-status" aria-live="polite">Now playing</div>
+        <div class="np-title" id="np-title">&nbsp;</div>
+        <div class="np-meta" id="np-detail">Lecture archive</div>
+      </div>
+      <div class="player-controls">
+        <button class="pbtn" id="prev" title="Previous" aria-label="Previous"></button>
+        <button class="pbtn play" id="play" title="Play or pause" aria-label="Play or pause"></button>
+        <button class="pbtn" id="next" title="Next" aria-label="Next"></button>
+      </div>
+      <div class="player-actions">
+        <button class="pbtn" id="rate" title="Playback speed">1×</button>
+        <button class="pbtn" id="np-save" title="Save offline" aria-label="Save offline"></button>
+        <a class="pbtn" id="np-download" title="Download file" aria-label="Download file" href="#"></a>
+      </div>
+    </div>
+    <div class="timeline">
+      <span id="cur">0:00</span>
+      <input type="range" id="seek" class="seek" min="0" max="1000" value="0" aria-label="Seek">
+      <span id="dur">0:00</span>
+    </div>
+  </div>
+
+  <audio id="audio" preload="none"></audio>
+  <script src="/app.js"></script>
+</body>
+</html>
