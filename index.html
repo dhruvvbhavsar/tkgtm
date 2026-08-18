@@ -53,6 +53,7 @@
         <option value="length">Shortest first</option>
       </select>
       <button id="offline-filter" class="saved-toggle" aria-pressed="false">Saved</button>
+      <button id="heard-filter" class="saved-toggle heard-toggle" aria-pressed="false">Heard</button>
     </div>
 
     <nav class="years" id="years"></nav>
@@ -79,7 +80,9 @@
       </div>
       <div class="player-controls">
         <button class="pbtn" id="prev" title="Previous" aria-label="Previous"></button>
+        <button class="pbtn skip" id="rewind" title="Back 15 seconds" aria-label="Back 15 seconds">−15</button>
         <button class="pbtn play" id="play" title="Play or pause" aria-label="Play or pause"></button>
+        <button class="pbtn skip" id="forward" title="Forward 15 seconds" aria-label="Forward 15 seconds">+15</button>
         <button class="pbtn" id="next" title="Next" aria-label="Next"></button>
       </div>
       <div class="player-actions">
