@@ -70,33 +70,39 @@
     </div>
   </main>
 
-  <div class="player" id="player" hidden>
-    <div class="player-main">
-      <div class="cover" aria-hidden="true"><span>TKG</span><i></i></div>
-      <div class="np">
-        <div class="np-label" id="np-status" aria-live="polite">Now playing</div>
-        <div class="np-title" id="np-title">&nbsp;</div>
-        <div class="np-meta" id="np-detail">Lecture archive</div>
+  <aside class="player" id="player" aria-label="Audio player" hidden>
+    <div class="player-progress">
+      <input type="range" id="seek" class="seek" min="0" max="1000" value="0" aria-label="Playback position">
+    </div>
+
+    <div class="player-layout">
+      <div class="player-episode">
+        <div class="cover" aria-hidden="true"><span>TKG</span><i></i></div>
+        <div class="np">
+          <div class="np-label" id="np-status" aria-live="polite">Now playing</div>
+          <div class="np-title" id="np-title">&nbsp;</div>
+          <div class="np-meta" id="np-detail">Lecture archive</div>
+        </div>
       </div>
-      <div class="player-controls">
-        <button class="pbtn" id="prev" title="Previous" aria-label="Previous"></button>
-        <button class="pbtn skip" id="rewind" title="Back 15 seconds" aria-label="Back 15 seconds">−15</button>
-        <button class="pbtn play" id="play" title="Play or pause" aria-label="Play or pause"></button>
-        <button class="pbtn skip" id="forward" title="Forward 15 seconds" aria-label="Forward 15 seconds">+15</button>
-        <button class="pbtn" id="next" title="Next" aria-label="Next"></button>
+
+      <div class="transport">
+        <div class="player-controls">
+          <button class="pbtn adjacent" id="prev" title="Previous lecture" aria-label="Previous lecture"></button>
+          <button class="pbtn skip" id="rewind" title="Back 15 seconds" aria-label="Back 15 seconds"><span>15</span><small>↶</small></button>
+          <button class="pbtn play" id="play" title="Play or pause" aria-label="Play or pause"></button>
+          <button class="pbtn skip" id="forward" title="Forward 15 seconds" aria-label="Forward 15 seconds"><span>15</span><small>↷</small></button>
+          <button class="pbtn adjacent" id="next" title="Next lecture" aria-label="Next lecture"></button>
+        </div>
+        <div class="timecode"><span id="cur">0:00</span><span aria-hidden="true">/</span><span id="dur">0:00</span></div>
       </div>
-      <div class="player-actions">
-        <button class="pbtn" id="rate" title="Playback speed">1×</button>
+
+      <div class="player-actions" aria-label="Playback options">
+        <button class="pbtn rate" id="rate" title="Playback speed" aria-label="Change playback speed">1×</button>
         <button class="pbtn" id="np-save" title="Save offline" aria-label="Save offline"></button>
         <a class="pbtn" id="np-download" title="Download file" aria-label="Download file" href="#"></a>
       </div>
     </div>
-    <div class="timeline">
-      <span id="cur">0:00</span>
-      <input type="range" id="seek" class="seek" min="0" max="1000" value="0" aria-label="Seek">
-      <span id="dur">0:00</span>
-    </div>
-  </div>
+  </aside>
 
   <audio id="audio" preload="none"></audio>
   <script src="/app.js"></script>

@@ -241,7 +241,29 @@ function setPlaybackState(mode){
     navigator.mediaSession.playbackState = mode === "playing" ? "playing" :
       mode === "paused" ? "paused" : "none";
   }
-  render();
+  syncActiveRow();
+}
+
+function syncActiveRow(){
+  if (!state.playing) return;
+  const row = document.querySelector(`li[data-id="${CSS.escape(String(state.playing))}"]`);
+  if (!row) return;
+  const button = row.querySelector('.play-btn');
+  if (!button) return;
+  const loading = state.loadingId === state.playing;
+  const playing = !loading && !audio.paused;
+  button.classList.toggle('playing', playing);
+  button.classList.toggle('loading', loading);
+  button.setAttribute('aria-label', loading ? 'Loading audio' : playing ? 'Pause' : 'Play');
+  button.toggleAttribute('aria-busy', loading);
+  button.innerHTML = loading ? '<span class="audio-loader" aria-hidden="true"></span>' : playing ? ICONS.pause : ICONS.play;
+}
+
+function updateSeek(value){
+  const seek = $("seek");
+  const next = Math.max(0, Math.min(1000, Number(value) || 0));
+  seek.value = next;
+  seek.style.setProperty("--seek-progress", `${next / 10}%`);
 }
 
 function updateMediaSession(l){
@@ -295,12 +317,13 @@ audio.addEventListener("loadedmetadata", () => {
     $("cur").textContent = fmtTime(pendingSeek);
   }
   pendingSeek = 0;
+  updateSeek(audio.duration ? Math.round((audio.currentTime / audio.duration) * 1000) : 0);
   updateMediaPosition();
 });
 audio.addEventListener("timeupdate", () => {
   if (!audio.duration) return;
   $("cur").textContent = fmtTime(audio.currentTime);
-  $("seek").value = Math.round((audio.currentTime / audio.duration) * 1000);
+  updateSeek(Math.round((audio.currentTime / audio.duration) * 1000));
   persistPlayback();
   updateMediaPosition();
   if (audio.currentTime / audio.duration >= .9 && state.playing && !state.heard.has(state.playing)) {
@@ -391,6 +414,7 @@ $("rate").addEventListener("click", () => {
   updateMediaPosition();
 });
 $("seek").addEventListener("input", () => {
+  updateSeek($("seek").value);
   if (audio.duration) audio.currentTime = (parseInt($("seek").value, 10) / 1000) * audio.duration;
 });
 $("np-save").addEventListener("click", () => {
