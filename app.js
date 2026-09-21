@@ -12,12 +12,15 @@ const ICONS = {
   check: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.5 16.2 5.3 12l-1.4 1.4 5.6 5.6L20.1 8.4l-1.4-1.4z"/></svg>',
   file: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3v10.17l3.09-3.09 1.41 1.42L12 16l-4.5-4.5 1.41-1.42L12 13.17V3zM5 19h14v2H5z"/></svg>',
   heard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5C7 16.5 3.5 13.3 3.5 9.6 3.5 7 5.5 5 8 5c1.6 0 3.1.8 4 2.1C12.9 5.8 14.4 5 16 5c2.5 0 4.5 2 4.5 4.6 0 3.7-3.5 6.9-8.5 10.9Z"/></svg>',
+  heartFill: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.5C7 16.5 3.5 13.3 3.5 9.6 3.5 7 5.5 5 8 5c1.6 0 3.1.8 4 2.1C12.9 5.8 14.4 5 16 5c2.5 0 4.5 2 4.5 4.6 0 3.7-3.5 6.9-8.5 10.9Z"/></svg>',
 };
 
 const AUDIO_CACHE = "tkgtm-audio-v1";
 const SAVED_KEY = "tkgtm.saved.v1";
 const HEARD_KEY = "tkgtm.heard.v1";
 const PLAYBACK_KEY = "tkgtm.playback.v1";
+const FAVOURITES_KEY = "tkgtm.favourites.v1";
 const BASE = "https://www.tkgtm.com";
 
 const state = {
@@ -35,8 +38,32 @@ let resumeAfterInterruption = false;
 /* ---------- data ---------- */
 function yearValue(y){ return y === "Unknown" ? null : parseInt(y, 10); }
 
+function verseKey(verse){
+  const v=String(verse||'');
+  if(/invocation/i.test(v))return [0];
+  const nums=(v.match(/\d+/g)||[]).map(Number);
+  return nums.length?[1,...nums]:[];
+}
+function seriesSort(a,b){
+  const ka=verseKey(a.verse),kb=verseKey(b.verse);
+  if(ka.length&&kb.length){
+    for(let i=0;i<Math.max(ka.length,kb.length);i++){
+      const d=(ka[i]??1e9)-(kb[i]??1e9);
+      if(d)return d;
+    }
+  } else if(ka.length!==kb.length) return kb.length-ka.length;
+  return (a.id||0)-(b.id||0);
+}
+function artIndexFor(s){
+  return Math.abs(Array.from(String(s||'')).reduce(function(a,c){ return a + c.charCodeAt(0); },0)) % 4;
+}
+
 function filterList(){
+  if(state.view === 'series' && state.seriesName) {
+    return state.all.filter((d) => d.series === state.seriesName).sort(seriesSort);
+  }
   let out = state.all;
+  if(state.view === 'library') out = out.filter(l => state.libraryTab === 'downloads' ? state.saved.has(l.id) : state.libraryTab === 'history' ? state.positions[l.id]?.position>0 || state.heard.has(l.id) : state.favourites.has(l.id));
   if (state.year) out = out.filter((d) => d.year === state.year);
   if (state.series) out = out.filter((d) => d.series === state.series);
   if (state.savedOnly) out = out.filter((d) => state.saved.has(d.id));
@@ -69,14 +96,52 @@ function secs(len){
 }
 
 function fmtMeta(l){
-  const p = [l.year, l.place, l.verse, l.festival, l.translation].filter(Boolean);
+  const p = [displayDate(l) || l.year, prettyPlace(l.place), l.verse, l.festival, l.translation || cleanedTitle(l).translation].filter(Boolean);
   return p.join(" \u00b7 ");
 }
 
+/* Display titles: ~724 archive titles embed "YYYY.MM.DD Place Topic".
+   Show the topic; keep the full original in recording details. */
+function cleanedTitle(l){
+  const raw = String(l.title || "");
+  let rest = raw.replace(/^\d{4}\.\d{2}\.\d{2}\s+/, "");
+  let translation = "";
+  const tm = rest.match(/[, ]\bw(?:ith)?\s+([A-Za-z]+)\s*$/);
+  if (tm) { translation = tm[1]; rest = rest.slice(0, tm.index); }
+  if (rest !== raw) {
+    const placeWords = new Set(String(l.place || "").toLowerCase().split(/[^a-z]+/).filter(Boolean));
+    const toks = rest.split(/\s+/);
+    let drop = 0;
+    while (drop < 3 && drop < toks.length) {
+      const w = toks[drop].replace(/[^a-z]/gi, "").toLowerCase();
+      if (w && (placeWords.has(w) || /^(india|usa?|us|uk|england)$/.test(w))) drop++;
+      else break;
+    }
+    rest = toks.slice(drop).join(" ").replace(/^[,–—\s]+/, "").replace(/[,;:\s]+$/, "").trim();
+  }
+  return { title: rest || raw, translation };
+}
+
+function displayDate(l){
+  const m = /^(\d{4})\.(\d{2})\.(\d{2})/.exec(l.title || "");
+  if (m) {
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${parseInt(m[3],10)} ${months[parseInt(m[2],10)-1] || ""} ${m[1]}`.trim();
+  }
+  return l.year;
+}
+
+function prettyPlace(place){
+  if (!place) return "";
+  return place.replace(/^US-/, "").replace(/^India-/, "");
+}
+
 function rowMeta(l){
-  const p = [l.year, l.place, l.verse].filter(Boolean).join(" \u00b7 ");
-  return `${esc(p)}${l.length ? ' &nbsp;<span class="len">' + esc(l.length) + "</span>" : ""}` +
-    (l.series ? '<span class="tag">' + esc(l.series) + "</span>" : "");
+  const c = cleanedTitle(l);
+  const p = [displayDate(l) || l.year, prettyPlace(l.place), l.verse].filter(Boolean).join(" \u00b7 ");
+  const extra = c.translation && !l.translation ? ` \u00b7 ${esc(c.translation)} translation` : "";
+  return `${esc(p)}${extra}${l.length ? ' &nbsp;<span class="len">' + esc(l.length) + "</span>" : ""}` +
+    (l.series && state.view !== 'series' ? '<span class="tag">' + esc(l.series) + "</span>" : "");
 }
 
 /* ---------- render ---------- */
@@ -114,17 +179,18 @@ function rowHTML(l){
   const playing = active && !loading && !audio.paused;
   const saved = state.saved.has(l.id);
   const heard = state.heard.has(l.id);
-  const progress = state.resume && state.resume.id === l.id && state.resume.duration > 0
-    ? Math.min(100, (state.resume.position / state.resume.duration) * 100) : 0;
+  const position = state.positions[l.id];
+  const progress = position && position.duration > 0 ? Math.min(100, position.position / position.duration * 100) : 0;
   return `<li data-id="${l.id}">
     <div class="episode-no" aria-hidden="true">${String(state.list.indexOf(l) + 1).padStart(2, "0")}</div>
     <button class="play-btn${playing ? " playing" : ""}${loading ? " loading" : ""}" data-act="play" aria-label="${loading ? "Loading audio" : playing ? "Pause" : "Play"}" ${loading ? 'aria-busy="true"' : ""}>${loading ? '<span class="audio-loader" aria-hidden="true"></span>' : playing ? ICONS.pause : ICONS.play}</button>
-    <div class="row-body" data-act="play">
-      <div class="row-title">${esc(l.title)}</div>
-      <div class="row-meta">${rowMeta(l)}</div>
+    <button class="row-body" data-act="play" aria-label="Play ${esc(cleanedTitle(l).title)}">
+      <span class="row-title">${esc(cleanedTitle(l).title)}</span>
+      <span class="row-meta">${rowMeta(l)}</span>
       ${progress > 1 && progress < 90 ? `<progress class="row-progress" max="100" value="${progress}" title="${Math.round(progress)}% listened"></progress>` : ""}
-    </div>
+    </button>
     <div class="row-actions">
+      <button class="favourite-btn" data-act="favourite" aria-label="${state.favourites.has(l.id) ? 'Remove favourite' : 'Add favourite'}" aria-pressed="${state.favourites.has(l.id)}">${state.favourites.has(l.id) ? ICONS.heartFill : ICONS.heart}</button>
       <button class="heard-btn${heard ? " heard" : ""}" data-act="heard" aria-label="${heard ? "Mark as unheard" : "Mark as heard"}" title="${heard ? "Heard" : "Mark heard"}">${ICONS.heard}</button>
       <button class="save-btn${saved ? " saved" : ""}" data-act="save" aria-label="${saved ? "Remove from offline" : "Save offline"}">${saved ? ICONS.check : ICONS.dl}</button>
     </div>
@@ -132,31 +198,74 @@ function rowHTML(l){
 }
 
 function render(){
+  syncRoute();
+  const focused=document.activeElement;
+  const focusId=focused?.closest('#list li')?.dataset.id;
+  const focusAction=focused?.dataset.act;
+  if(state.positions) renderContinue();
   state.list = filterList();
+  if(typeof renderSeriesHero === 'function') renderSeriesHero();
   $("count").textContent =
-    `${state.list.length} lecture${state.list.length === 1 ? "" : "s"}` +
-    (state.savedOnly ? " \u00b7 saved" : "") +
-    (state.heardOnly ? " \u00b7 heard" : "") +
-    (state.saved.size ? ` \u00b7 ${state.saved.size} offline` : "");
+    state.view === 'series'
+    ? `${state.list.length} in sequence`
+    : `${state.list.length} lecture${state.list.length === 1 ? "" : "s"}` +
+      (state.savedOnly ? " \u00b7 saved" : "") +
+      (state.heardOnly ? " \u00b7 heard" : "") +
+      (state.saved.size ? ` \u00b7 ${state.saved.size} offline` : "");
 
   const list = $("list");
   list.innerHTML = "";
   const frag = document.createDocumentFragment();
-  const shown = state.list.slice(0, state.visible);
-  for (const l of shown) {
+  const addRow = (l) => {
     const div = document.createElement("div");
     div.innerHTML = rowHTML(l);
     frag.appendChild(div.firstElementChild);
+  };
+  const addHead = (label) => {
+    const div = document.createElement("div");
+    div.innerHTML = `<li class="group-head" aria-hidden="true">${esc(label)}</li>`;
+    frag.appendChild(div.firstElementChild);
+  };
+  if(state.view === 'search' && state.q.trim()) {
+    const q = state.q.trim().toLowerCase();
+    const seriesHits = [...new Set(state.all.map((l) => l.series).filter(Boolean))]
+      .filter((s) => s.toLowerCase().includes(q)).slice(0, 5);
+    const verseHits = state.list.filter((l) => (l.verse || "").toLowerCase().includes(q));
+    const verseIds = new Set(verseHits.map((l) => l.id));
+    const rest = state.list.filter((l) => !verseIds.has(l.id));
+    if(seriesHits.length) {
+      addHead("Series");
+      for(const s of seriesHits) {
+        const n = state.all.filter((l) => l.series === s).length;
+        const div = document.createElement("div");
+        div.innerHTML = `<li class="series-hit"><a href="#series?name=${encodeURIComponent(s)}"><span class="hit-art art-${artIndexFor(s)}" aria-hidden="true">T</span><span class="hit-text"><b>${esc(s)}</b><small>${n} lectures \u00b7 open series \u2192</small></span></a></li>`;
+        frag.appendChild(div.firstElementChild);
+      }
+    }
+    if(verseHits.length) {
+      addHead(verseHits.length === 1 ? "Verse" : "Verses");
+      verseHits.slice(0, state.visible).forEach(addRow);
+    }
+    if(rest.length) {
+      if(seriesHits.length || verseHits.length) addHead("Lectures");
+      rest.slice(0, state.visible).forEach(addRow);
+    }
+  } else {
+    const shown = state.list.slice(0, state.view === 'home' ? 6 : state.view === 'series' ? state.list.length : state.visible);
+    shown.forEach(addRow);
   }
   list.appendChild(frag);
+  if(focusId && focusAction){const replacement=list.querySelector(`li[data-id="${CSS.escape(focusId)}"] [data-act="${CSS.escape(focusAction)}"]`);if(replacement)replacement.focus({preventScroll:true});else {document.querySelector('.library-heading h2').tabIndex=-1;document.querySelector('.library-heading h2').focus({preventScroll:true});}}
+  if($('np-heard')) {$('np-heard').setAttribute('aria-pressed',String(state.heard.has(state.playing)));$('np-heard').textContent=state.heard.has(state.playing)?'✓ Heard':'Mark as heard';}
 
   $("empty").hidden = state.list.length > 0;
   $("empty-text").textContent = state.savedOnly
     ? "Nothing saved yet \u2014 tap the download icon on a lecture to keep it offline."
     : state.heardOnly ? "No lectures marked as heard yet."
     : "No lectures match your search.";
+  if(state.view==='library') $('empty-text').textContent=state.libraryTab==='downloads'?'No downloads yet. Save a lecture offline using its download button.':state.libraryTab==='history'?'Your listening history will appear here. Start a lecture or mark one as heard.':'No favourites yet. Tap the heart on any lecture to keep it here.';
 
-  if (state.visible < state.list.length) {
+  if (state.view !== 'home' && state.visible < state.list.length) {
     const more = document.createElement("button");
     more.className = "load-more";
     more.textContent = `Load ${Math.min(200, state.list.length - state.visible)} more`;
@@ -172,7 +281,8 @@ $("list").addEventListener("click", (e) => {
   const id = parseInt(li.dataset.id, 10);
   const l = state.all.find((x) => x.id === id);
   if (!l) return;
-  if (e.target.closest('[data-act="save"]')) toggleSave(l);
+  if (e.target.closest('[data-act="favourite"]')) { if(state.favourites.has(id))state.favourites.delete(id);else state.favourites.add(id);localStorage.setItem(FAVOURITES_KEY,JSON.stringify([...state.favourites]));render(); }
+  else if (e.target.closest('[data-act="save"]')) toggleSave(l);
   else if (e.target.closest('[data-act="heard"]')) toggleHeard(l.id);
   else togglePlay(l);
 });
@@ -188,16 +298,22 @@ function togglePlay(l){
 
 function play(l, options = {}){
   const autoplay = options.autoplay !== false;
+  if(state.playing && state.playing !== l.id) persistPlayback(true);
+  if(!options.keepQueue) state.queue=state.list.slice();
   state.playing = l.id;
-  pendingSeek = Math.max(0, options.position || 0);
+  const remembered=state.positions[l.id];
+  pendingSeek = Math.max(0, options.position ?? (remembered && remembered.position < remembered.duration * .9 ? remembered.position : 0));
   manualPause = !autoplay;
   resumeAfterInterruption = false;
   setPlaybackState(autoplay ? "loading" : "paused");
   audio.src = BASE + l.url;
   audio.playbackRate = state.rate;
   $("player").hidden = false;
-  $("np-title").textContent = l.title;
+  $("np-title").textContent = cleanedTitle(l).title;
   $("np-detail").textContent = fmtMeta(l) || "Lecture archive";
+  var art = $("mini-art");
+  if (art) art.className = "cover art-" + artIndexFor(l.series || l.title);
+  $('recording-detail').textContent=[l.title,l.series,fmtMeta(l),l.occasion,l.length].filter(Boolean).join(' · ');
   $("np-save").innerHTML = state.saved.has(l.id) ? ICONS.check : ICONS.dl;
   $("np-save").classList.toggle("saved", state.saved.has(l.id));
   $("np-download").href = "/api/download?path=" + encodeURIComponent(l.url);
@@ -264,6 +380,8 @@ function updateSeek(value){
   const next = Math.max(0, Math.min(1000, Number(value) || 0));
   seek.value = next;
   seek.style.setProperty("--seek-progress", `${next / 10}%`);
+  var fill = $("mini-fill");
+  if (fill) fill.style.width = `${next / 10}%`;
 }
 
 function updateMediaSession(l){
@@ -300,6 +418,8 @@ function persistPlayback(force = false){
   const duration = isFinite(audio.duration) && audio.duration > 0 ? audio.duration : secs(l.length);
   const position = Math.max(0, audio.currentTime || pendingSeek || 0);
   state.resume = { id: l.id, position, duration, rate: state.rate, updatedAt: now };
+  state.positions[l.id]=state.resume;
+  localStorage.setItem('tkgtm.positions.v1',JSON.stringify(state.positions));
   localStorage.setItem(PLAYBACK_KEY, JSON.stringify(state.resume));
 }
 
@@ -399,10 +519,11 @@ function setupMediaSession(){
   }
 }
 function step(dir){
-  if (!state.list.length) return;
-  let i = state.list.findIndex((l) => l.id === state.playing);
-  if (i < 0) i = 0; else i = (i + dir + state.list.length) % state.list.length;
-  play(state.list[i]);
+  const queue=state.queue||state.list;
+  if (!queue.length) return;
+  let i = queue.findIndex((l) => l.id === state.playing);
+  if (i < 0) i = 0; else i = (i + dir + queue.length) % queue.length;
+  play(queue[i],{keepQueue:true});
 }
 $("rate").addEventListener("click", () => {
   const rates = [1, 1.25, 1.5, 2];
@@ -460,7 +581,7 @@ async function toggleSave(l){
     $("np-save").classList.toggle("saved", saved);
   }
   if (state.playing === l.id) setPlaybackState(audio.paused ? "paused" : "playing");
-  else render();
+  render();
 }
 
 function setDownloadUI(l, { active, label = "", progress = 0 }){
@@ -589,7 +710,7 @@ $("heard-filter").addEventListener("click", () => {
 document.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
     e.preventDefault();
-    $("q").focus();
+    if(state.view!=='search') location.hash='search'; else $("q").focus();
   }
 });
 
@@ -658,9 +779,14 @@ async function reconcileSaved(){
 }
 
 (async function boot(){
+  state.favourites=new Set();state.libraryTab='favourites';
+  try {state.favourites=new Set(JSON.parse(localStorage.getItem(FAVOURITES_KEY)||'[]'));}catch{}
   try { state.saved = new Set(JSON.parse(localStorage.getItem(SAVED_KEY) || "[]")); } catch {}
   try { state.heard = new Set(JSON.parse(localStorage.getItem(HEARD_KEY) || "[]")); } catch {}
   try { state.resume = JSON.parse(localStorage.getItem(PLAYBACK_KEY) || "null"); } catch {}
+  state.positions={};
+  try {const p=JSON.parse(localStorage.getItem('tkgtm.positions.v1')||'{}');if(p && typeof p==='object' && !Array.isArray(p))state.positions=p;}catch{}
+  if(state.resume && !state.positions[state.resume.id])state.positions[state.resume.id]=state.resume;
   try {
     const r = await fetch("/lectures.json", { cache: "no-cache" });
     state.all = await r.json();
@@ -671,6 +797,7 @@ async function reconcileSaved(){
   }
   buildYears();
   buildSeries();
+  setupViews();
   render();
   reconcileSaved();
   setupMediaSession();

@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f4eadb">
+  <meta name="theme-color" content="#f6f3ec">
   <meta name="description" content="Browse, stream and listen offline to lectures of H.H. Tamal Krishna Goswami.">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="TKGTM">
@@ -16,68 +17,87 @@
 </head>
 <body>
   <a class="skip-link" href="#library">Skip to library</a>
-  <header class="topbar">
-    <div class="masthead">
-      <div class="brand">
-        <span class="brand-mark" aria-hidden="true">T</span>
-        <span class="brand-name">TKGTM</span>
-        <span class="brand-sub">Audio archive</span>
+  <div class="bg" aria-hidden="true"><i class="bg-a"></i><i class="bg-b"></i><i class="bg-c"></i></div>
+
+  <nav class="app-nav" aria-label="Main navigation">
+    <a class="identity" href="#home"><span class="identity-mark" aria-hidden="true">T</span><span class="identity-text">Tamal Krishna Goswami<small>Lecture archive</small></span></a>
+    <a href="#home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5"/><path d="M6.5 10.5V20h11v-9.5"/></svg><span>Home</span></a>
+    <a href="#browse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg><span>Browse</span></a>
+    <a href="#library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5C7 16.5 3.5 13.3 3.5 9.6 3.5 7 5.5 5 8 5c1.6 0 3.1.8 4 2.1C12.9 5.8 14.4 5 16 5c2.5 0 4.5 2 4.5 4.6 0 3.7-3.5 6.9-8.5 10.9Z"/></svg><span>Library</span></a>
+    <a href="#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span>Search</span></a>
+    <p class="nav-note">A lifetime of devotion.<br>A living archive.</p>
+  </nav>
+
+  <div class="shell">
+    <header class="topbar">
+      <div class="masthead">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <span class="brand-name">TKGTM</span>
+          <span class="brand-sub">Audio archive</span>
+        </div>
+        <button id="install-btn" class="install" hidden>Install</button>
       </div>
-      <button id="install-btn" class="install" hidden>Install</button>
-    </div>
 
-    <div class="intro">
-      <div class="intro-copy-block">
-        <p class="eyebrow"><span>Since 1974</span> The spoken archive</p>
-        <h1>Listen<br><em>closely.</em></h1>
-        <p class="intro-copy">Recorded lectures and conversations with H.H. Tamal Krishna Goswami—preserved for careful listening.</p>
+      <div class="intro">
+        <p class="eyebrow">H.H. Tamal Krishna Goswami</p>
+        <h1 tabindex="-1">Home</h1>
+        <p class="intro-copy" id="view-description">Make a little room for listening.</p>
       </div>
-      <div class="hero-art" aria-hidden="true">
-        <span class="hero-edition">Archive<br>No. 01</span>
-        <div class="hero-disc"><i></i></div>
-        <span class="hero-caption">Wisdom in<br>the spoken word</span>
+
+      <section id="home-content" aria-label="Discover the archive">
+        <div class="section-heading"><h2>Explore a teaching</h2><span>Selected series from the archive</span></div>
+        <div id="collections" class="collections"></div>
+      </section>
+
+      <div class="search-wrap">
+        <svg class="search-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+        <input type="search" id="q" class="search" aria-label="Search the archive" placeholder="Search talks, places, verses…" autocomplete="off">
+        <kbd>⌘ K</kbd>
       </div>
-    </div>
 
-    <div class="search-wrap">
-      <span class="search-icon" aria-hidden="true"></span>
-      <input type="search" id="q" class="search" placeholder="Search the archive" autocomplete="off">
-      <kbd>⌘ K</kbd>
-    </div>
+      <div class="controls">
+        <select id="series" class="select" aria-label="Series"><option value="">All series</option></select>
+        <select id="sort" class="select" aria-label="Sort lectures">
+          <option value="year">Newest first</option>
+          <option value="title">Title A–Z</option>
+          <option value="length">Shortest first</option>
+        </select>
+        <button id="offline-filter" class="saved-toggle" aria-pressed="false">Saved</button>
+        <button id="heard-filter" class="saved-toggle heard-toggle" aria-pressed="false">Heard</button>
+      </div>
 
-    <div class="controls">
-      <select id="series" class="select"><option value="">All series</option></select>
-      <select id="sort" class="select">
-        <option value="year">Newest first</option>
-        <option value="title">Title A–Z</option>
-        <option value="length">Shortest first</option>
-      </select>
-      <button id="offline-filter" class="saved-toggle" aria-pressed="false">Saved</button>
-      <button id="heard-filter" class="saved-toggle heard-toggle" aria-pressed="false">Heard</button>
-    </div>
+      <nav class="years" id="years" aria-label="Filter by year"></nav>
+    </header>
 
-    <nav class="years" id="years"></nav>
-  </header>
-
-  <main id="library">
-    <div class="library-heading">
-      <h2>All episodes</h2>
-      <p class="count" id="count"></p>
-    </div>
-    <ul class="list" id="list"></ul>
-    <div class="empty" id="empty" hidden>
-      <p class="empty-title" id="empty-text">No lectures match your search.</p>
-    </div>
-  </main>
+    <main id="library">
+      <div id="library-tabs" hidden>
+        <button data-library="favourites" aria-pressed="true">Favourites</button>
+        <button data-library="downloads" aria-pressed="false">Downloads</button>
+        <button data-library="history" aria-pressed="false">History</button>
+      </div>
+      <div class="library-heading">
+        <h2>All episodes</h2>
+        <p class="count" id="count"></p>
+      </div>
+      <ul class="list" id="list"></ul>
+      <a id="browse-all" href="#browse">Explore all lectures →</a>
+      <div class="empty" id="empty" hidden>
+        <p class="empty-title" id="empty-text">No lectures match your search.</p>
+      </div>
+    </main>
+  </div>
 
   <aside class="player" id="player" aria-label="Audio player" hidden>
+    <button id="expand-player" aria-label="Open Now Playing"><span aria-hidden="true"></span></button>
+    <div class="mini-progress" aria-hidden="true"><span id="mini-fill"></span></div>
     <div class="player-progress">
-      <input type="range" id="seek" class="seek" min="0" max="1000" value="0" aria-label="Playback position">
+      <input type="range" id="seek" class="seek" min="0" max="1000" value="0" step="1" aria-label="Playback position">
     </div>
 
     <div class="player-layout">
       <div class="player-episode">
-        <div class="cover" aria-hidden="true"><span>TKG</span><i></i></div>
+        <div class="cover art-0" id="mini-art" aria-hidden="true"><span>TKG</span><i></i></div>
         <div class="np">
           <div class="np-label" id="np-status" aria-live="polite">Now playing</div>
           <div class="np-title" id="np-title">&nbsp;</div>
@@ -88,9 +108,9 @@
       <div class="transport">
         <div class="player-controls">
           <button class="pbtn adjacent" id="prev" title="Previous lecture" aria-label="Previous lecture"></button>
-          <button class="pbtn skip" id="rewind" title="Back 15 seconds" aria-label="Back 15 seconds"><span>15</span><small>↶</small></button>
+          <button class="pbtn skip" id="rewind" title="Back 15 seconds" aria-label="Back 15 seconds"><span>15</span></button>
           <button class="pbtn play" id="play" title="Play or pause" aria-label="Play or pause"></button>
-          <button class="pbtn skip" id="forward" title="Forward 15 seconds" aria-label="Forward 15 seconds"><span>15</span><small>↷</small></button>
+          <button class="pbtn skip" id="forward" title="Forward 15 seconds" aria-label="Forward 15 seconds"><span>15</span></button>
           <button class="pbtn adjacent" id="next" title="Next lecture" aria-label="Next lecture"></button>
         </div>
         <div class="timecode"><span id="cur">0:00</span><span aria-hidden="true">/</span><span id="dur">0:00</span></div>
@@ -98,6 +118,7 @@
 
       <div class="player-actions" aria-label="Playback options">
         <button class="pbtn rate" id="rate" title="Playback speed" aria-label="Change playback speed">1×</button>
+        <button id="np-heard" aria-pressed="false">Mark as heard</button>
         <button class="pbtn" id="np-save" title="Save offline" aria-label="Save offline"></button>
         <a class="pbtn" id="np-download" title="Download file" aria-label="Download file" href="#"></a>
       </div>
@@ -105,6 +126,13 @@
   </aside>
 
   <audio id="audio" preload="none"></audio>
+  <dialog id="now-playing" aria-labelledby="now-playing-heading">
+    <div class="dialog-heading"><h2 id="now-playing-heading">Now Playing</h2><button id="close-player" aria-label="Close Now Playing">Close</button></div>
+    <div id="expanded-content"></div>
+    <details><summary>Recording details</summary><p id="recording-detail"></p></details>
+    <p class="queue-note">Previous and next follow the lecture list you started from.</p>
+  </dialog>
+  <script src="/views.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

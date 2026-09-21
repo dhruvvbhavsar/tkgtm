@@ -1,6 +1,6 @@
 "use strict";
 
-const VERSION = "v9";
+const VERSION = "v12";
 const SHELL_CACHE = "tkgtm-shell-" + VERSION;
 const AUDIO_CACHE = "tkgtm-audio-v1";
 
@@ -9,6 +9,7 @@ const SHELL = [
   "/index.html",
   "/style.css",
   "/app.js",
+  "/views.js",
   "/manifest.webmanifest",
   "/lectures.json",
   "/icons/icon-192.png",

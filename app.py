@@ -128,7 +128,7 @@ class Handler(BaseHTTPRequestHandler):
             import urllib.parse
             params = urllib.parse.parse_qs(qs)
             self._download(params.get("path", [""])[0])
-        elif path.startswith("/icons/") or path in ("/", "/index.html", "/style.css", "/app.js", "/sw.js", "/manifest.webmanifest", "/lectures.json"):
+        elif path.startswith("/icons/") or path in ("/", "/index.html", "/style.css", "/app.js", "/views.js", "/sw.js", "/manifest.webmanifest", "/lectures.json"):
             self._static(path)
         else:
             self.send_error(404, "not found")
