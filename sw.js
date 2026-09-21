@@ -1,6 +1,6 @@
 "use strict";
 
-const VERSION = "v16";
+const VERSION = "v17";
 const SHELL_CACHE = "tkgtm-shell-" + VERSION;
 const AUDIO_CACHE = "tkgtm-audio-v1";
 
