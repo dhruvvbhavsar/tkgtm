@@ -734,15 +734,26 @@ function toast(msg){
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredInstall = e;
-  $("install-btn").hidden = false;
 });
-$("install-btn").addEventListener("click", async () => {
-  if (!deferredInstall) return;
-  deferredInstall.prompt();
-  await deferredInstall.userChoice;
-  deferredInstall = null;
-  $("install-btn").hidden = true;
-});
+(function setupInstall(){
+  // iOS Safari never fires beforeinstallprompt, so the button is always
+  // visible (outside the installed app) and falls back to platform steps.
+  const btn = $("install-btn");
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if (standalone) { btn.hidden = true; return; }
+  btn.hidden = false;
+  btn.addEventListener("click", async () => {
+    if (deferredInstall) {
+      deferredInstall.prompt();
+      await deferredInstall.userChoice;
+      deferredInstall = null;
+      btn.hidden = true;
+    } else {
+      $("install-help").showModal();
+    }
+  });
+  $("install-help-close").addEventListener("click", () => $("install-help").close());
+})();
 
 /* ---------- online/offline ---------- */
 window.addEventListener("online", () => toast("Back online"));

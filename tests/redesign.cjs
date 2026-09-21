@@ -13,6 +13,17 @@ test('Home discovery routes to a real series page and browser back restores Home
  await page.goBack(); await page.waitForFunction(()=>document.querySelector('h1').textContent==='Home'); assert.equal(await page.locator('h1').textContent(),'Home');
  }finally{await browser.close()}
 });
+test('Install button is visible and explains installation without a browser prompt',async()=>{
+ const browser=await chromium.launch({channel:'chrome',headless:true});
+ try{const page=await browser.newPage();await page.goto('http://127.0.0.1:8765');await page.waitForSelector('#list li');
+ assert.equal(await page.locator('#install-btn').isVisible(),true);
+ await page.locator('#install-btn').click();
+ assert.equal(await page.locator('#install-help').evaluate(d=>d.open),true);
+ assert.match(await page.locator('.install-steps').textContent(),/Add to Home Screen/);
+ await page.keyboard.press('Escape');
+ assert.equal(await page.locator('#install-help').evaluate(d=>d.open),false);
+ }finally{await browser.close()}
+});
 test('Per-lecture resume migrates legacy progress and Now Playing is accessible on mobile',async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true});
  try{const page=await browser.newPage({viewport:{width:390,height:844}});await page.goto('http://127.0.0.1:8765');await page.evaluate(()=>localStorage.setItem('tkgtm.playback.v1',JSON.stringify({id:1,position:123,duration:2841,rate:1.25})));await page.reload();

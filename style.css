@@ -418,6 +418,23 @@ dialog#now-playing {
   padding-bottom: 18px;
 }
 dialog#now-playing::backdrop { background: rgba(35, 29, 24, 0.45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+dialog#install-help {
+  border: 1px solid rgba(255, 255, 255, 0.6); padding: 0 0 18px;
+  width: min(420px, calc(100vw - 24px));
+  border-radius: 26px; background: var(--glass-strong); color: var(--ink);
+  -webkit-backdrop-filter: blur(30px) saturate(1.6);
+  backdrop-filter: blur(30px) saturate(1.6);
+  box-shadow: var(--shadow-lg);
+}
+dialog#install-help::backdrop { background: rgba(35, 29, 24, 0.45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+dialog#install-help .dialog-heading { padding: 18px 20px 0; }
+#install-help-close {
+  border: 1px solid var(--line); background: var(--card);
+  border-radius: 999px; padding: 8px 18px; font-size: 12.5px; font-weight: 650;
+}
+.install-steps { padding: 4px 22px 0; font-size: 14px; }
+.install-steps p { margin: 12px 0; line-height: 1.6; }
+.install-note { color: var(--soft); font-size: 13px; }
 .dialog-heading { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 0; }
 .dialog-heading h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--soft); }
 #close-player {
