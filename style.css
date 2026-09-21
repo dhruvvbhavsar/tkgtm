@@ -535,7 +535,10 @@ dialog#install-help .dialog-heading { padding: 18px 20px 0; }
   .player-layout { grid-template-columns: minmax(0, 1fr) auto; padding: 10px 10px 10px 12px; }
   .player-actions { display: none; }
   #now-playing .player-actions { display: flex; }
-  .transport .skip, .transport .adjacent { display: none; }
+  .transport .adjacent { display: none; }
+  #player .transport .skip { display: grid; width: 38px; height: 38px; font-size: 10px; }
+  #player .pbtn.play { width: 50px; height: 50px; }
+  #player .player-controls { gap: 4px; }
   #now-playing .transport .skip { display: grid; }
   #now-playing .cover { width: 168px; height: 168px; }
   .controls { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; }
