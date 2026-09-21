@@ -502,7 +502,7 @@ dialog#install-help .dialog-heading { padding: 18px 20px 0; }
 }
 
 @media (max-width: 700px) {
-  body { padding: 0 0 208px; }
+  body { padding: 0 0 236px; }
   .app-nav {
     inset: auto 12px calc(env(safe-area-inset-bottom, 0px) + 12px) 12px; width: auto;
     flex-direction: row; justify-content: space-around; align-items: center;
@@ -545,13 +545,34 @@ dialog#install-help .dialog-heading { padding: 18px 20px 0; }
   .controls .select:first-child { grid-column: 1 / -1; max-width: none; }
   .series-head { grid-template-columns: 104px minmax(0, 1fr); gap: 14px; }
   .series-head .collection-art b { font-size: 17px; }
+  .dock {
+    position: fixed; left: 12px; right: 12px; z-index: 50;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    display: flex; flex-direction: column;
+    background: linear-gradient(rgba(255, 253, 249, 0.96), rgba(255, 253, 249, 0.93));
+    -webkit-backdrop-filter: blur(26px) saturate(1.6);
+    backdrop-filter: blur(26px) saturate(1.6);
+    border: 1px solid rgba(255, 255, 255, 0.65); border-radius: 26px;
+    box-shadow: var(--shadow-lg); overflow: hidden;
+  }
+  .dock .player {
+    position: static; left: auto; right: auto; bottom: auto; width: auto;
+    background: none; border: 0; border-radius: 0; box-shadow: none;
+    -webkit-backdrop-filter: none; backdrop-filter: none; animation: none;
+  }
+  .dock .app-nav {
+    position: static; inset: auto; width: auto; z-index: auto;
+    background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0;
+    box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+    padding: 6px 8px calc(env(safe-area-inset-bottom, 0px) + 6px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 @media (prefers-reduced-transparency: reduce) {
-  .app-nav, .player, dialog#now-playing, .resume-card, .search-wrap { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--card); }
+  .app-nav, .player, .dock, dialog#now-playing, dialog#install-help, .resume-card, .search-wrap { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--card); }
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -565,6 +586,7 @@ dialog#install-help .dialog-heading { padding: 18px 20px 0; }
   .pbtn.play { background: #f2ede5; color: #221e1a; }
   .player { background: linear-gradient(rgba(38, 34, 30, 0.95), rgba(38, 34, 30, 0.92)); border-color: rgba(255, 244, 230, 0.16); }
   .app-nav { background: linear-gradient(rgba(38, 34, 30, 0.95), rgba(38, 34, 30, 0.92)); }
+  .dock { background: linear-gradient(rgba(38, 34, 30, 0.96), rgba(38, 34, 30, 0.93)); border-color: rgba(255, 244, 230, 0.16); }
   .resume-icon { background: #f2ede5; color: #221e1a; }
   #expand-player span { background: rgba(242, 237, 229, 0.35); }
   .mini-progress { background: rgba(242, 237, 229, 0.16); }

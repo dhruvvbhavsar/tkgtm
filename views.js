@@ -7,6 +7,22 @@ function setupViews(){
   $('expand-player').onclick=(e)=>{e.stopPropagation();document.querySelectorAll('#player .player-progress,#player .player-layout').forEach(n=>$('expanded-content').append(n));dialog.showModal();};
   $('close-player').onclick=()=>dialog.close();
   document.querySelector('#player .player-episode').addEventListener('click',(e)=>{ if(e.target.closest('button'))return; if(!dialog.open){ document.querySelectorAll('#player .player-progress,#player .player-layout').forEach(n=>$('expanded-content').append(n)); dialog.showModal(); } });
+  // One unified bottom dock on phones: player + tabs in a single card so
+  // the two surfaces can never overlap. Desktop keeps them separate.
+  const dock=document.createElement('div');dock.className='dock';dock.setAttribute('aria-hidden','false');
+  const navEl=document.querySelector('.app-nav'),playerEl=$('player'),shellEl=document.querySelector('.shell'),audioEl=$('audio');
+  const mq=window.matchMedia('(max-width:700px)');
+  const placeDock=()=>{
+    if(mq.matches){
+      if(!dock.isConnected)document.body.append(dock);
+      dock.append(playerEl,navEl);
+    } else {
+      if(dock.isConnected)dock.remove();
+      shellEl.before(navEl);audioEl.before(playerEl);
+    }
+  };
+  if(mq.addEventListener)mq.addEventListener('change',placeDock);
+  placeDock();
   $('play').addEventListener('click',(e)=>e.stopPropagation());
   dialog.addEventListener('close',()=>{while($('expanded-content').firstChild)$('player').append($('expanded-content').firstChild);$('expand-player').focus();});
   $('library-tabs').addEventListener('click',e=>{const b=e.target.closest('[data-library]');if(!b)return;state.libraryTab=b.dataset.library;document.querySelectorAll('[data-library]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));render();});
